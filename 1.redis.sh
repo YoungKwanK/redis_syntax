@@ -83,7 +83,7 @@ rpush user:1:recent:product mango
 # 최근 본 상품 3개 조회
 lrange user:1:recent:product -3 -1
 
-# set 자료구조의 특징: 중복없음,순서없음,
+# set 자료구조의 특징: 중복없음,순서없음
 sadd memberlist a1
 sadd memberlist a2
 sadd memberlist a3
@@ -108,3 +108,37 @@ sadd posing:likes:1 a1@naver.com
 smembers posting:likes:1 a1@naver.com
 
 # zset : sorted set
+# zset을 활용해서 최근시간순으로 정렬가능
+# zset도 set이므로 같은 상품을 add할 경우에 중복이 제거되고, score(시간)값만 업데이트
+zadd user:1:recent:product 091330 mango
+zadd user:1:recent:product 091331 apple
+zadd user:1:recent:product 091332 banana
+zadd user:1:recent:product 091333 orange
+zadd user:1:recent:product 091334 apple # 중복값으로 덮어쓰기 되는 데 삭제 추가가 아닌 score만 바뀜
+
+# zset조회 : zrange(score기준 오름차순), zrevrange(score기준 내림차순)
+zrange user:1:recent:product 0 2
+zrange user:1:recent:product -3 -1
+# withscores를 통해 score값까지 같이 출력
+zrevrange user:1:recent:product 0 2 withscores
+
+# 주식시세저장
+# 종목:삼성전자, 시세:55,000원, 시간:현재시간(유닉스 타임 스탬프) -> 년월일시간을 초단위로 변환한 것.
+zadd stock:price:se 1748911141 55000
+zadd stock:price:se 1748911142 55500
+zadd stock:price:lg 1748911142 100000
+zadd stock:price:lg 1748911143 110000
+# 삼성전자의 현재시세
+zrange stock:price:se -1 -1
+zrevrange stock:price:se 0 0
+
+# hashes : value가 map형태의 자료구조(key:value, key:value ... 형태의 자료구조)
+set member:info:1 "{\"name\":\"hong\", \"email\":\"hong@daum.net\", \"age\":30}"
+hset member:info:1 name hong email hong@daum.net age 30
+# 특정값 조회
+hget member:info:1 name
+# 모든 객체값 조회
+hgetall member:info:1
+# 특정 요소값 수정
+hset member:info:1 name hong2
+# redis활용상황 : 빈번하게 변경되는 객체 값을 저장 시 효율적
